@@ -1,8 +1,11 @@
 # GetDNS
 
+[![build-status-image]][travis]
+[![coverage-status-image]][codecov]
 [![pypi-version]][pypi]
 [![python-version]][pypi]
 [![license]][pypi]
+[![Join the chat at https://gitter.im/getdns/Lobby](https://badges.gitter.im/getdns/Lobby.svg)](https://gitter.im/getdns/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 **GetDNS** 是一个使用DnsDB API查询DNS记录命令行工具。
 
@@ -191,6 +194,10 @@ requests.exceptions.SSLError: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert h
 * [DnsDB Python SDK](https://pysdk.dnsdb.io)
 * [DnsDB API服务](https://dnsdb.io/apiservice)
 
+[build-status-image]: https://img.shields.io/travis/dnsdb-team/getdns/master.svg
+[travis]: https://travis-ci.org/dnsdb-team/getdns
+[coverage-status-image]: https://img.shields.io/codecov/c/github/dnsdb-team/getdns/master.svg
+[codecov]: http://codecov.io/github/dnsdb-team/getdns?branch=master
 [pypi-version]: https://img.shields.io/pypi/v/dnsdb-getdns.svg
 [pypi]: https://pypi.python.org/pypi/dnsdb-getdns
 [python-version]: https://img.shields.io/pypi/pyversions/dnsdb-getdns.svg
