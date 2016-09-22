@@ -301,6 +301,8 @@ def get_args():
     api_url = defaults['api_url']
     proxy = defaults['proxy']
     parser = ArgumentParser(description="getdns is DNS query tool power by DnsDB.io")
+    version = __import__('getdns').__version__
+    parser.add_argument('-V', '--version', action='version', version='%(prog)s ' + version)
     subparsers = parser.add_subparsers()
     subparsers.required = True
 
