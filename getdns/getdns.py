@@ -8,6 +8,7 @@ from dnsdb.clients import DnsDBClient
 from dnsdb.errors import AuthenticationError
 from getpass import getpass
 import csv
+import datetime
 import pickle
 import os
 import sys
@@ -183,6 +184,7 @@ def search_cmd(args):
     client = DnsDBClient(proxies=proxies)
     login(client, username, password)
     output = get_output_file(args.output)
+    start_time = datetime.datetime.now()
     try:
         if get_all:
             result = client.retrieve_dns(domain=domain, host=host, dns_type=dns_type, ip=ip)
@@ -194,6 +196,9 @@ def search_cmd(args):
             os.remove(CACHE_PATH)
         sys.stderr.write(str(e) + '\n')
     finally:
+        output.flush()
+        if args.verbose:
+            print('Running time: %s' % (datetime.datetime.now() - start_time))
         output.close()
 
 
@@ -237,8 +242,11 @@ def bulk_search_cmd(args):
                 dns_type = line
             elif data_type == 'host':
                 host = line
+            start_time = datetime.datetime.now()
             result = client.retrieve_dns(domain=domain, host=host, dns_type=dns_type, ip=ip)
             process_output(result, output, OutputFormatter(args.json, args.csv, args.format), args.max)
+            if args.verbose:
+                print('Running time: %s' % (datetime.datetime.now() - start_time))
     except Exception as e:
         sys.stderr.write(str(e) + '\n')
     finally:
@@ -321,6 +329,7 @@ def get_args():
     search_parser.add_argument('-m', '--max', help='set the maximum number of search results for the output', type=int)
     search_parser.add_argument('-P', '--proxy', help=proxy_help, default=proxy)
     search_parser.add_argument('--api-url', help='set API URL, default "%s"' % api_url, default=api_url)
+    search_parser.add_argument('-v', '--verbose', help='show verbose information', action='store_true', default=False)
     search_parser.set_defaults(func=search_cmd)
 
     # bulk search parser
@@ -342,6 +351,8 @@ def get_args():
                                     type=int)
     bulk_search_parser.add_argument('-P', '--proxy', help=proxy_help, default=proxy)
     bulk_search_parser.add_argument('--api-url', help='set API URL, default "%s"' % api_url, default=api_url)
+    bulk_search_parser.add_argument('-v', '--verbose', help='show verbose information', action='store_true',
+                                    default=False)
     search_group = bulk_search_parser.add_argument_group('search options')
     search_group.add_argument('-d', '--domain', help='search by domain')
     search_group.add_argument('-H', '--host', help='search DNS by host')
