@@ -18,7 +18,7 @@ setup(
     url=URL,
     packages=find_packages(),
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: Chinese (Simplified)',
