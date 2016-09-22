@@ -35,5 +35,5 @@ setup(
         ]
     },
     zip_safe=False,
-    install_requires=['dnsdb-python-sdk', ],
+    install_requires=['dnsdb-python-sdk', 'colorama'],
 )

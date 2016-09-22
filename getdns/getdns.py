@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from dnsdb.api import APIClient
 from dnsdb.clients import DnsDBClient
 from dnsdb.errors import AuthenticationError
+from colorama import Fore, Style
 from getpass import getpass
 import csv
 import datetime
@@ -25,6 +26,10 @@ CONFIG_PATH = os.path.expanduser("~/.getdns")
 CACHE_PATH = os.path.expanduser("~/.getdns.cache")
 
 
+def show_error(message):
+    sys.stderr.write(Fore.RED + message + Style.RESET_ALL)
+
+
 def validate_ip(ip):
     pattern = re.compile('^(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\.'
                          '(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.'
@@ -36,10 +41,10 @@ def validate_ip(ip):
 def check_search_params(domain, host, ip):
     if ip:
         if not validate_ip(ip):
-            sys.stderr.write('"%s" is not a valid IP address\n' % ip)
+            show_error('"%s" is not a valid IP address\n' % ip)
             sys.exit(-1)
     if domain is None and host is None and ip is None:
-        sys.stderr.write('You need to provide at least one parameter in "--domain", "--ip", "--host"\n')
+        show_error('You need to provide at least one parameter in "--domain", "--ip", "--host"\n')
         sys.exit(-1)
 
 
@@ -128,7 +133,7 @@ def login(client, username, password):
             client.login(username, password)
             dump_cache(client.access_token, username, password)
         except Exception as e:
-            sys.stderr.write(str(e) + '\n')
+            show_error(str(e) + '\n')
             sys.exit(-1)
 
 
@@ -194,7 +199,7 @@ def search_cmd(args):
     except Exception as e:
         if isinstance(e, AuthenticationError):
             os.remove(CACHE_PATH)
-        sys.stderr.write(str(e) + '\n')
+        show_error(str(e) + '\n')
     finally:
         output.flush()
         if args.verbose:
@@ -209,7 +214,7 @@ def bulk_search_cmd(args):
     elif os.path.exists(args.input):
         input_file = open(args.input)
     else:
-        sys.stderr.write('%s not found\n' % args.input)
+        show_error('%s not found\n' % args.input)
         sys.exit(-1)
     data_type = args.data_type
     domain = args.domain
@@ -217,7 +222,7 @@ def bulk_search_cmd(args):
     ip = args.ip
     host = args.host
     if ip and not validate_ip(ip):
-        sys.stderr.write('"%s" is not a valid IP address\n' % ip)
+        show_error('"%s" is not a valid IP address\n' % ip)
         sys.exit(-1)
     username = args.username
     password = args.password
@@ -248,7 +253,7 @@ def bulk_search_cmd(args):
             if args.verbose:
                 print('Running time: %s' % (datetime.datetime.now() - start_time))
     except Exception as e:
-        sys.stderr.write(str(e) + '\n')
+        show_error(str(e) + '\n')
     finally:
         output.close()
         input_file.close()
@@ -271,7 +276,7 @@ def resources_cmd(args):
         resources = client.get_resources()
         print("Remaining DNS request: %s" % resources.remaining_dns_request)
     except AuthenticationError as e:
-        sys.stderr.write("%s\n" % e.value)
+        show_error("%s\n" % e.value)
 
 
 def config_cmd(args):
