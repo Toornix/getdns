@@ -8,6 +8,7 @@ from dnsdb.clients import DnsDBClient
 from dnsdb.errors import AuthenticationError
 from colorama import Fore, Style
 from getpass import getpass
+from progressive.bar import Bar
 import csv
 import datetime
 import pickle
@@ -154,6 +155,14 @@ class OutputFormatter(object):
 
 
 def process_output(result, output, formatter, max_result=None):
+    if output != sys.stdout:
+        if max_result and max_result < len(result):
+            max_value = max_result
+        else:
+            max_value = len(result)
+        bar = Bar(max_value=max_value, title='Receiving')
+        bar.cursor.clear_lines(1)
+        bar.cursor.save()
     count = 0
     if formatter.csv:
         csv_file = output
@@ -166,6 +175,9 @@ def process_output(result, output, formatter, max_result=None):
         else:
             output.write(formatter.format(record))
         count += 1
+        if output != sys.stdout:
+            bar.cursor.restore()
+            bar.draw(value=count)
 
 
 def search_cmd(args):
