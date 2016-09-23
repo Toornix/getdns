@@ -8,13 +8,13 @@ from dnsdb.clients import DnsDBClient
 from dnsdb.errors import AuthenticationError
 from colorama import Fore, Style
 from getpass import getpass
-from progressive.bar import Bar
 import csv
 import datetime
 import pickle
 import os
 import sys
 import re
+import traceback
 
 try:
     # python2
@@ -154,15 +154,39 @@ class OutputFormatter(object):
         return line
 
 
+class ProgressBar(object):
+    def __init__(self, title='Progress', max_value=100):
+        try:
+            from progressive.bar import Bar
+            self.support_progressive = True
+            self.bar = Bar(max_value=max_value, title='Receiving')
+            self.bar.cursor.clear_lines(1)
+            self.bar.cursor.save()
+        except ImportError:
+            self.support_progressive = False
+            from progress.bar import Bar
+            self.bar = Bar('Receiving', max=max_value)
+
+    def next(self, count=0):
+        if self.support_progressive:
+            self.bar.cursor.restore()
+            self.bar.draw(value=count)
+        else:
+            self.bar.next()
+
+    def finish(self):
+        if not self.support_progressive:
+            self.bar.finish()
+
+
 def process_output(result, output, formatter, max_result=None):
-    if output != sys.stdout:
+    show_progress = output != sys.stdout
+    if show_progress:
         if max_result and max_result < len(result):
             max_value = max_result
         else:
             max_value = len(result)
-        bar = Bar(max_value=max_value, title='Receiving')
-        bar.cursor.clear_lines(1)
-        bar.cursor.save()
+        bar = ProgressBar(title='Receiving', max_value=max_value)
     count = 0
     if formatter.csv:
         csv_file = output
@@ -175,9 +199,10 @@ def process_output(result, output, formatter, max_result=None):
         else:
             output.write(formatter.format(record))
         count += 1
-        if output != sys.stdout:
-            bar.cursor.restore()
-            bar.draw(value=count)
+        if show_progress:
+            bar.next(count)
+    if show_progress:
+        bar.finish()
 
 
 def search_cmd(args):
@@ -211,6 +236,7 @@ def search_cmd(args):
     except Exception as e:
         if isinstance(e, AuthenticationError):
             os.remove(CACHE_PATH)
+        traceback.print_exc()
         show_error(str(e) + '\n')
     finally:
         output.flush()
