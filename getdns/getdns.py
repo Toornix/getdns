@@ -236,7 +236,8 @@ def search_cmd(args):
     except Exception as e:
         if isinstance(e, AuthenticationError):
             os.remove(CACHE_PATH)
-        traceback.print_exc()
+        if args.debug:
+            traceback.print_exc()
         show_error(str(e) + '\n')
     finally:
         output.flush()
@@ -291,6 +292,8 @@ def bulk_search_cmd(args):
             if args.verbose:
                 print('Running time: %s' % (datetime.datetime.now() - start_time))
     except Exception as e:
+        if args.debug:
+            traceback.print_exc()
         show_error(str(e) + '\n')
     finally:
         output.close()
@@ -311,10 +314,15 @@ def resources_cmd(args):
     client = DnsDBClient(proxies=proxies)
     login(client, username, password)
     try:
+        start_time = datetime.datetime.now()
         resources = client.get_resources()
         print("Remaining DNS request: %s" % resources.remaining_dns_request)
-    except AuthenticationError as e:
-        show_error("%s\n" % e.value)
+        if args.verbose:
+            print('Running time: %s' % (datetime.datetime.now() - start_time))
+    except Exception as e:
+        if args.debug:
+            traceback.print_exc()
+        show_error(str(e) + '\n')
 
 
 def config_cmd(args):
@@ -375,6 +383,7 @@ def get_args():
     search_parser.add_argument('-P', '--proxy', help=proxy_help, default=proxy)
     search_parser.add_argument('--api-url', help='set API URL, default "%s"' % api_url, default=api_url)
     search_parser.add_argument('-v', '--verbose', help='show verbose information', action='store_true', default=False)
+    search_parser.add_argument('-D', '--debug', help='run in debug mode', action='store_true', default=False)
     search_parser.set_defaults(func=search_cmd)
 
     # bulk search parser
@@ -398,6 +407,7 @@ def get_args():
     bulk_search_parser.add_argument('--api-url', help='set API URL, default "%s"' % api_url, default=api_url)
     bulk_search_parser.add_argument('-v', '--verbose', help='show verbose information', action='store_true',
                                     default=False)
+    bulk_search_parser.add_argument('-D', '--debug', help='run in debug mode', action='store_true', default=False)
     search_group = bulk_search_parser.add_argument_group('search options')
     search_group.add_argument('-d', '--domain', help='search by domain')
     search_group.add_argument('-H', '--host', help='search DNS by host')
@@ -411,6 +421,8 @@ def get_args():
     resources_parser.add_argument('-p', '--password', help='set password, default "%s"' % password, default=password)
     resources_parser.add_argument('-P', '--proxy', help=proxy_help, default=proxy)
     resources_parser.add_argument('--api-url', help='set API URL, default "%s"' % api_url, default=api_url)
+    resources_parser.add_argument('-v', '--verbose', help='show verbose information', action='store_true', default=False)
+    resources_parser.add_argument('-D', '--debug', help='run in debug mode', action='store_true', default=False)
     resources_parser.set_defaults(func=resources_cmd)
 
     # config parser
