@@ -18,7 +18,8 @@ def test_validate_ip():
 
 
 def test_config():
-    os.remove(getdns.CONFIG_PATH)
+    if os.path.exists(getdns.CONFIG_PATH):
+        os.remove(getdns.CONFIG_PATH)
     temp = sys.argv
     sys.argv = [temp[0]]
     sys.argv += ['config', '-u', default_username, '-p', default_password, '--proxy', default_proxy, '--api-url',
